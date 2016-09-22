@@ -60,6 +60,17 @@ $(busybox_prepare_minimal): $(BB_PATH)/busybox-minimal.config
 	@cat $^ > $@ && echo "CONFIG_CROSS_COMPILER_PREFIX=\"$(BUSYBOX_CROSS_COMPILER_PREFIX)\"" >> $@
 	make -C $(BB_PATH) prepare O=$(@D) $(BB_PREPARE_FLAGS)
 
+busybox_prepare_minimal := $(bb_gen)/minimal/.config
+$(busybox_prepare_minimal): $(BB_PATH)/busybox-minimal.config
+	@echo -e ${CL_YLW}"Prepare config for libbusybox"${CL_RST}
+	@rm -rf $(bb_gen)/minimal
+	@rm -f $(shell find $(abspath $(call intermediates-dir-for,STATIC_LIBRARIES,libbusybox)) -name "*.o")
+	@mkdir -p $(@D)
+	@cat $^ > $@ && echo "CONFIG_CROSS_COMPILER_PREFIX=\"$(BUSYBOX_CROSS_COMPILER_PREFIX)\"" >> $@
+	make -C $(BB_PATH) prepare O=$(@D) $(BB_PREPARE_FLAGS)
+
+
+#####################################################################
 
 #####################################################################
 
@@ -207,6 +218,7 @@ LOCAL_STATIC_LIBRARIES := libclearsilverregex libc libcutils libm libuclibcrpc l
 LOCAL_MODULE_CLASS := UTILITY_EXECUTABLES
 LOCAL_MODULE_PATH := $(PRODUCT_OUT)/utilities
 LOCAL_UNSTRIPPED_PATH := $(PRODUCT_OUT)/symbols/utilities
-LOCAL_ADDITIONAL_DEPENDENCIES := $(busybox_prepare_full)
+$(LOCAL_MODULE): busybox_prepare
 LOCAL_PACK_MODULE_RELOCATIONS := false
+LOCAL_ADDITIONAL_DEPENDENCIES := $(busybox_prepare_full)
 include $(BUILD_EXECUTABLE)
